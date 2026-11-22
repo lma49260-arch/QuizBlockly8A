@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Interaktif Blockly - Informatika Kelas VIII A</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome untuk Ikon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #2e1065 0%, #4c1d95 45%, #6d28d9 100%);
+            min-height: 100vh;
+            color: #1f2937;
+            overflow-x: hidden;
+        }
+        h1, h2, h3, .font-display {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        /* Animasi latar belakang lembut */
+        .bg-shapes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .shape {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(192, 132, 252, 0.22) 0%, rgba(139, 92, 246, 0) 70%);
+            animation: float 14s infinite ease-in-out;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-25px) scale(1.05); }
+        }
+        /* Custom Scrollbar untuk dropdown & tabel */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f3e8ff;
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #9333ea;
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #7e22ce;
+        }
+        /* Animasi detak jantung ikon timer saat waktu kritis */
+        @keyframes heartbeat-icon {
+            0%, 100% { transform: scale(1); }
+            25% { transform: scale(1.25); }
+            45% { transform: scale(1.05); }
+            65% { transform: scale(1.22); }
+        }
+        .animate-heartbeat {
+            animation: heartbeat-icon 0.7s infinite;
+        }
+        /* Transisi mulus */
+        .fade-in {
+            animation: fadeIn 0.35s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-purple-600 selection:text-white">
+
+    <!-- Dekorasi Latar Ungu -->
+    <div class="bg-shapes">
+        <div class="shape w-96 h-96 -top-20 -left-20"></div>
+        <div class="shape w-[32rem] h-[32rem] top-1/2 -right-32" style="animation-delay: -5s;"></div>
+        <div class="shape w-80 h-80 -bottom-24 left-1/3" style="animation-delay: -9s;"></div>
+    </div>
+
+    <!-- Container Utama -->
+    <div class="relative z-10 min-h-screen flex flex-col justify-between px-4 py-6 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+        
+        <!-- Header Atas -->
+        <header class="flex items-center justify-between bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-4 py-3 sm:px-6 shadow-lg mb-6">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/95 overflow-hidden flex items-center justify-center text-purple-700 shadow-md border border-purple-300/40 shrink-0">
+                    <img src="logo.jpeg" alt="Logo Kelas VIII A" class="w-full h-full object-cover"
+                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="hidden w-full h-full bg-gradient-to-br from-fuchsia-500 to-purple-700 items-center justify-center text-white">
+                        <i class="fa-solid fa-puzzle-piece text-lg sm:text-xl"></i>
+                    </div>
+                </div>
+                <div>
+                    <h1 class="text-white font-bold text-base sm:text-lg leading-tight">Kuis Informatika Kelas VIII A</h1>
+                    <p class="text-purple-200 text-xs sm:text-sm">Materi: Pemrograman Visual Blockly</p>
+                </div>
+            </div>
+
+            <!-- Tombol Mute/Unmute Audio -->
+            <button id="audioToggleBtn" onclick="toggleAudio()" title="Suara & Musik Latar"
+                class="flex items-center gap-2 bg-purple-950/60 hover:bg-purple-900/80 text-purple-100 border border-purple-400/30 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition active:scale-95">
+                <i id="audioIcon" class="fa-solid fa-volume-high text-fuchsia-400"></i>
+                <span id="audioLabel" class="hidden sm:inline">Suara Aktif</span>
+            </button>
+        </header>
+
+        <!-- Konten Utama -->
+        <main class="flex-grow flex flex-col justify-center">
+
+            <!-- ==========================================
+                 1. HALAMAN UTAMA (TAMPILAN MULAI & HASIL)
+                 ========================================== -->
+            <section id="homeView" class="fade-in">
+                <!-- Navigasi 2 Tab Utama: Mulai & Hasil -->
+                <div class="grid grid-cols-2 gap-3 p-1.5 bg-purple-950/50 backdrop-blur-md border border-purple-400/20 rounded-2xl mb-6 max-w-md mx-auto">
+                    <button id="tabStartBtn" onclick="switchHomeTab('start')"
+                        class="py-3 px-4 rounded-xl font-bold text-sm sm:text-base transition-all duration-200 flex items-center justify-center gap-2 bg-white text-purple-900 shadow-md">
+                        <i class="fa-solid fa-play text-purple-600"></i>
+                        <span>Mulai Kuis</span>
+                    </button>
+                    <button id="tabResultsBtn" onclick="switchHomeTab('results')"
+                        class="py-3 px-4 rounded-xl font-bold text-sm sm:text-base transition-all duration-200 flex items-center justify-center gap-2 text-purple-200 hover:text-white">
+                        <i class="fa-solid fa-trophy text-amber-300"></i>
+                        <span>Hasil</span>
+                        <span id="resultsCountBadge" class="bg-purple-600 text-white text-xs px-2 py-0.5 rounded-full">0</span>
+                    </button>
+                </div>
+
+                <!-- KONTEN TAB 1: FORM MULAI KUIS -->
+                <div id="startTabContent" class="bg-white rounded-3xl shadow-2xl border border-purple-100 p-6 sm:p-8 max-w-xl mx-auto">
+                    <div class="text-center mb-6">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-700 mb-3">
+                            <i class="fa-solid fa-bolt"></i> Siap Uji Kemampuanmu?
+                        </span>
+                        <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-2">Kuis Cepat Blockly</h2>
+                        <p class="text-gray-500 text-sm sm:text-base">Cari namamu pada daftar di bawah, lalu kerjakan 10 soal dalam waktu 30 detik per soal!</p>
+                    </div>
+
+                    <!-- Aturan Singkat -->
+                    <div class="grid grid-cols-3 gap-2.5 mb-6 text-center">
+                        <div class="bg-purple-50 border border-purple-100 rounded-2xl p-3">
+                            <div class="text-purple-700 font-extrabold text-lg sm:text-xl">10</div>
+                            <div class="text-gray-600 text-xs font-medium">Soal ABCD</div>
+                        </div>
+                        <div class="bg-fuchsia-50 border border-fuchsia-100 rounded-2xl p-3">
+                            <div class="text-fuchsia-700 font-extrabold text-lg sm:text-xl">30 Detik</div>
+                            <div class="text-gray-600 text-xs font-medium">Waktu / Soal</div>
+                        </div>
+                        <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-3">
+                            <div class="text-indigo-700 font-extrabold text-lg sm:text-xl">+10 Poin</div>
+                            <div class="text-gray-600 text-xs font-medium">Setiap Benar</div>
+                        </div>
+                    </div>
+
+                    <!-- Pencarian Nama Siswa (Autocomplete Dropdown) -->
+                    <div class="mb-6 relative">
+                        <label for="studentSearchInput" class="block text-sm font-bold text-gray-700 mb-2">
+                            <i class="fa-solid fa-user-graduate text-purple-600 mr-1.5"></i>Cari & Pilih Nama Siswa (Kelas VIII A):
+                        </label>
+                        <div class="relative">
+                            <input type="text" id="studentSearchInput" autocomplete="off"
+                                placeholder="Ketik namamu di sini (contoh: Afif, Alana, Zahra...)"
+                                class="w-full pl-11 pr-10 py-3.5 bg-purple-50/70 border-2 border-purple-200 rounded-2xl text-gray-800 font-medium placeholder-gray-400 focus:outline-none focus:border-purple-600 focus:bg-white transition" />
+                            <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-purple-500"></i>
+                            <button type="button" id="clearSearchBtn" onclick="clearSelectedStudent()"
+                                class="hidden absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 p-1">
+                                <i class="fa-solid fa-circle-xmark text-lg"></i>
+                            </button>
+                        </div>
+
+                        <!-- Badge Konfirmasi Nama Terpilih -->
+                        <div id="selectedStudentBanner" class="hidden mt-2.5 flex items-center justify-between bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-2.5 rounded-xl text-sm">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-circle-check text-emerald-600"></i>
+                                <span>Terpilih: <strong id="selectedStudentNameDisplay"></strong></span>
+                            </div>
+                            <span class="text-xs bg-emerald-200/70 text-emerald-900 font-bold px-2 py-0.5 rounded-md">Siap</span>
+                        </div>
+
+                        <!-- Pesan Peringatan Validasi -->
+                        <p id="validationWarning" class="hidden mt-2 text-xs sm:text-sm text-rose-600 font-semibold flex items-center gap-1.5">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <span>Silakan klik salah satu nama dari daftar yang muncul terlebih dahulu!</span>
+                        </p>
+
+                        <!-- Dropdown Daftar 38 Siswa Kelas VIII A -->
+                        <div id="studentDropdown"
+                            class="hidden absolute left-0 right-0 mt-1.5 bg-white border border-purple-200 rounded-2xl shadow-2xl max-h-60 overflow-y-auto z-30 divide-y divide-purple-50">
+                            <!-- Item nama akan diisi melalui JavaScript -->
+                        </div>
+                    </div>
+
+                    <!-- Tombol Mulai Sekarang -->
+                    <button id="startQuizBtn" onclick="startQuiz()"
+                        class="w-full py-4 px-6 rounded-2xl font-extrabold text-white text-base sm:text-lg bg-gradient-to-r from-purple-700 via-purple-600 to-fuchsia-600 hover:from-purple-800 hover:to-fuchsia-700 shadow-lg shadow-purple-500/30 transition transform active:scale-[0.98] flex items-center justify-center gap-2.5">
+                        <i class="fa-solid fa-rocket"></i>
+                        <span>Mulai Sekarang</span>
+                    </button>
+                </div>
+
+                <!-- KONTEN TAB 2: HASIL KUIS (LEADERBOARD / REKAP NILAI & JSON) -->
+                <div id="resultsTabContent" class="hidden bg-white rounded-3xl shadow-2xl border border-purple-100 p-5 sm:p-8">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                        <div>
+                            <h2 class="text-xl sm:text-2xl font-extrabold text-gray-900 flex items-center gap-2">
+                                <i class="fa-solid fa-award text-purple-600"></i>
+                                <span>Daftar Hasil Nilai Kelas VIII A</span>
+                            </h2>
+                            <p class="text-gray-500 text-xs sm:text-sm mt-0.5">Tersimpan otomatis dalam JSON di browser & bisa diunduh.</p>
+                        </div>
+
+                        <!-- Tombol Aksi Guru (Export JSON, Import JSON, Salin Rekap & Reset) -->
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button onclick="downloadResultsJSON()" title="Simpan file backup JSON ke perangkat"
+                                class="px-3.5 py-2 bg-purple-700 hover:bg-purple-800 text-white font-semibold text-xs sm:text-sm rounded-xl transition flex items-center gap-1.5 shadow-sm">
+                                <i class="fa-solid fa-file-export"></i>
+                                <span>Download (.json)</span>
+                            </button>
+                            <button onclick="triggerImportJSON()" title="Muat ulang data dari file JSON"
+                                class="px-3.5 py-2 bg-indigo-100 hover:bg-indigo-200 text-indigo-800 font-semibold text-xs sm:text-sm rounded-xl transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-file-import"></i>
+                                <span>Upload (.json)</span>
+                            </button>
+                            <input type="file" id="importJsonInput" accept=".json,application/json" class="hidden" onchange="handleImportJSON(event)">
+                            <button onclick="copyResultsToClipboard()"
+                                class="px-3.5 py-2 bg-purple-100 hover:bg-purple-200 text-purple-800 font-semibold text-xs sm:text-sm rounded-xl transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-copy"></i>
+                                <span>Salin Rekap</span>
+                            </button>
+                            <button onclick="openResetModal()"
+                                class="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold text-xs sm:text-sm rounded-xl transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-trash-can"></i>
+                                <span>Reset</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Toast Notifikasi JSON / Salin -->
+                    <div id="copyToast" class="hidden mb-4 bg-purple-900 text-white text-xs sm:text-sm px-4 py-2.5 rounded-xl flex items-center gap-2">
+                        <i class="fa-solid fa-check-circle text-fuchsia-400"></i>
+                        <span id="copyToastText">Rekap nilai berhasil disalin ke clipboard!</span>
+                    </div>
+
+                    <!-- Pencarian di Tabel Hasil -->
+                    <div class="relative mb-4">
+                        <input type="text" id="resultSearchInput" onkeyup="renderResultsTable()"
+                            placeholder="Cari nama siswa di daftar hasil..."
+                            class="w-full pl-10 pr-4 py-2.5 bg-purple-50/70 border border-purple-200 rounded-xl text-sm text-gray-800 focus:outline-none focus:border-purple-600 focus:bg-white transition">
+                        <i class="fa-solid fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-purple-400 text-sm"></i>
+                    </div>
+
+                    <!-- Tabel Daftar Nilai -->
+                    <div class="overflow-x-auto border border-purple-100 rounded-2xl">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gradient-to-r from-purple-700 to-indigo-700 text-white text-xs sm:text-sm uppercase tracking-wider">
+                                    <th class="py-3.5 px-4 font-bold w-14 text-center">No</th>
+                                    <th class="py-3.5 px-4 font-bold">Nama Siswa</th>
+                                    <th class="py-3.5 px-4 font-bold text-center">Nilai</th>
+                                    <th class="py-3.5 px-4 font-bold text-right hidden sm:table-cell">Waktu Selesai</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resultsTableBody" class="divide-y divide-purple-100 text-sm">
+                                <!-- Data baris hasil diisi oleh JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- ==========================================
+                 2. HALAMAN PENGERJAAN KUIS (ACTIVE QUIZ)
+                 ========================================== -->
+            <section id="quizView" class="hidden fade-in max-w-2xl mx-auto w-full">
+                <div class="bg-white rounded-3xl shadow-2xl border border-purple-100 overflow-hidden">
+                    
+                    <!-- Top Bar Kuis: Info Siswa, Nomor Soal, & Timer -->
+                    <div class="bg-gradient-to-r from-purple-900 via-purple-800 to-indigo-900 text-white p-4 sm:p-6">
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                            <div class="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold">
+                                <i class="fa-solid fa-user text-fuchsia-300"></i>
+                                <span id="activeStudentName" class="truncate max-w-[180px] sm:max-w-[260px]">Nama Siswa</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="bg-fuchsia-600/80 border border-fuchsia-400/40 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold">
+                                    Soal <span id="questionNumberText">1</span> / 10
+                                </span>
+                                <span class="bg-purple-950/80 border border-purple-400/30 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold text-amber-300">
+                                    Skor: <span id="liveScoreText">0</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Timer Detik & Visual Progress Bar -->
+                        <div class="flex items-center justify-between text-xs sm:text-sm font-bold mb-1.5">
+                            <span class="flex items-center gap-1.5 text-purple-200">
+                                <i id="timerHeartIcon" class="fa-solid fa-heart-pulse text-fuchsia-400 text-base"></i>
+                                <span>Sisa Waktu Soal Ini:</span>
+                            </span>
+                            <span id="timerSecondsText" class="text-lg sm:text-xl font-extrabold text-white tabular-nums">30 Detik</span>
+                        </div>
+                        <div class="w-full h-3 bg-purple-950/80 rounded-full overflow-hidden p-0.5 border border-purple-500/30">
+                            <div id="timerProgressBar" class="h-full bg-gradient-to-r from-fuchsia-400 via-pink-500 to-amber-400 rounded-full transition-all duration-100 ease-linear" style="width: 100%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Area Pertanyaan & Pilihan Jawaban ABCD -->
+                    <div class="p-5 sm:p-8">
+                        <div class="mb-6">
+                            <h3 id="questionText" class="text-lg sm:text-xl font-bold text-gray-900 leading-snug">
+                                Memuat pertanyaan...
+                            </h3>
+                        </div>
+
+                        <!-- Grid Pilihan Jawaban A, B, C, D -->
+                        <div id="optionsContainer" class="grid grid-cols-1 gap-3">
+                            <!-- Tombol pilihan diisi oleh JavaScript -->
+                        </div>
+
+                        <!-- Umpan Balik Cepat (Benar / Salah / Waktu Habis) -->
+                        <div id="instantFeedback" class="hidden mt-5 p-3.5 rounded-2xl text-center font-bold text-sm sm:text-base">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- ==========================================
+                 3. HALAMAN HASIL AKHIR (SUMMARY SCREEN)
+                 ========================================== -->
+            <section id="finalResultView" class="hidden fade-in max-w-lg mx-auto w-full">
+                <div class="bg-white rounded-3xl shadow-2xl border border-purple-100 p-6 sm:p-8 text-center relative overflow-hidden">
+                    <!-- Pita Dekorasi Atas -->
+                    <div class="absolute top-0 left-0 right-0 h-2.5 bg-gradient-to-r from-purple-600 via-fuchsia-500 to-indigo-600"></div>
+
+                    <div class="w-20 h-20 mx-auto mb-4 rounded-3xl bg-gradient-to-br from-purple-600 to-fuchsia-600 text-white flex items-center justify-center text-4xl shadow-lg shadow-purple-500/30">
+                        <i id="finalTrophyIcon" class="fa-solid fa-trophy"></i>
+                    </div>
+
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-1">Kuis Selesai!</h2>
+                    <p id="finalMotivationText" class="text-purple-700 font-semibold text-sm sm:text-base mb-5">Kerja bagus!</p>
+
+                    <!-- Kartu Identitas & Skor -->
+                    <div class="bg-purple-50 border border-purple-200/80 rounded-2xl p-5 mb-6">
+                        <div class="text-xs font-bold uppercase tracking-wider text-purple-500 mb-1">Nama Peserta</div>
+                        <div id="finalStudentName" class="text-lg sm:text-xl font-extrabold text-gray-900 mb-4">Nama Siswa</div>
+
+                        <div class="grid grid-cols-2 gap-3 pt-4 border-t border-purple-200/70">
+                            <div class="bg-white rounded-xl p-3 border border-purple-100">
+                                <div class="text-xs text-gray-500 font-medium mb-0.5">Jawaban Benar</div>
+                                <div class="text-xl sm:text-2xl font-extrabold text-indigo-700"><span id="finalCorrectCount">0</span> <span class="text-sm font-semibold text-gray-400">/ 10</span></div>
+                            </div>
+                            <div class="bg-gradient-to-br from-purple-700 to-fuchsia-600 rounded-xl p-3 text-white shadow-md">
+                                <div class="text-xs text-purple-100 font-medium mb-0.5">Nilai Akhir</div>
+                                <div id="finalScoreValue" class="text-2xl sm:text-3xl font-extrabold">0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tombol Navigasi Akhir -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <button onclick="goToHome('start')"
+                            class="py-3.5 px-4 rounded-2xl font-bold text-purple-700 bg-purple-100 hover:bg-purple-200 transition flex items-center justify-center gap-2 text-sm sm:text-base">
+                            <i class="fa-solid fa-house"></i>
+                            <span>Menu Utama</span>
+                        </button>
+                        <button onclick="goToHome('results')"
+                            class="py-3.5 px-4 rounded-2xl font-bold text-white bg-gradient-to-r from-purple-700 to-fuchsia-600 hover:from-purple-800 hover:to-fuchsia-700 shadow-md transition flex items-center justify-center gap-2 text-sm sm:text-base">
+                            <i class="fa-solid fa-list-ol"></i>
+                            <span>Lihat Semua Hasil</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="mt-8 text-center text-purple-200/80 text-xs">
+            <p>Informatika Kelas VIII A &bull; Kuis Pemrograman Visual Blockly</p>
+        </footer>
+    </div>
+
+    <!-- Modal Konfirmasi Reset Data Nilai (Pengganti confirm()) -->
+    <div id="resetModal" class="hidden fixed inset-0 z-50 bg-purple-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-purple-100 text-center fade-in">
+            <div class="w-14 h-14 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center text-2xl mx-auto mb-3">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 class="text-lg font-extrabold text-gray-900 mb-1.5">Hapus Semua Data Nilai?</h3>
+            <p class="text-gray-500 text-sm mb-5">Semua riwayat nilai siswa yang tersimpan di perangkat ini akan dihapus permanen.</p>
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="closeResetModal()"
+                    class="py-2.5 px-4 rounded-xl font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 text-sm">
+                    Batal
+                </button>
+                <button onclick="confirmResetResults()"
+                    class="py-2.5 px-4 rounded-xl font-bold text-white bg-rose-600 hover:bg-rose-700 text-sm">
+                    Ya, Hapus
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         JAVASCRIPT: DATA, AUDIO ENGINE, & LOGIKA KUIS
+         ========================================== -->
+    <script>
+        // 1. DAFTAR 38 NAMA SISWA KELAS VIII A (PERSIS SESUAI DAFTAR ABSEN TERBARU)
+        const STUDENT_LIST = [
+            "Afif Falih Al-Ghani",
+            "Alana Hindriani",
+            "ALIF NANDONO",
+            "ALIKA PUTRI NOVIANTI",
+            "Amelli Nur Rokhmah",
+            "AQILA WANNA FEBRIA",
+            "CINTYA AGISTINA",
+            "ASYIFA NUR ALIYAH",
+            "ASSHIFA NURHAYATI",
+            "AZRA KHOIROTUN NAFISA",
+            "Desy Rahmawati",
+            "Danish Senja Bhagaskara",
+            "Deandra Reysa Anam",
+            "Deriska Aulia Putri",
+            "Elsa Putra Aji Utama",
+            "Irma Widia Rahmawati",
+            "Ghina Nur Oktaviani",
+            "Kansa Keandra",
+            "Meilysa Carlista",
+            "Mellian Al Humairoh",
+            "Muhammad Faiz Ardhani",
+            "Raihanah Dzihni Aditi",
+            "RAFFADONI ALDINO VIANSYAH",
+            "Ridhotiansyah Oktaleon Perdana",
+            "RIFQI ABDUL AZIZ",
+            "REHAN PUTRA PRATAMA",
+            "Rara Filzahra",
+            "SADDAM PUTRANA SIDIK",
+            "Salsabila Putri",
+            "SILVIANA NUR OKTAVIANTI",
+            "Shelvia Retta Uli Situmeang",
+            "SITI NABILAH",
+            "Siti Nadia",
+            "SUMARTINI",
+            "YUAN MEILANI PUTRI",
+            "ZEVANIA FLAS MEILIN TAMBA",
+            "ZAHRA DANIA ASYIFA",
+            "ZAHRA KAMILLYA MULKY"
+        ];
+
+        // 2. BANK 10 SOAL BARU BLOCKLY (SESUAI MATERI INFORMATIKA KELAS VIII)
+        const QUIZ_QUESTIONS = [
+            {
+                question: "Mengapa semua orang dapat menjadi programmer dengan mudah saat menggunakan Blockly?",
+                options: [
+                    "Karena antarmuka (interface)-nya berbasis blok yang mudah dipahami",
+                    "Karena komputer otomatis menulis seluruh program tanpa disusun",
+                    "Karena tidak memerlukan perangkat komputer maupun internet",
+                    "Karena hanya menggunakan satu tombol perintah saja"
+                ],
+                answerIndex: 0
+            },
+            {
+                question: "Apa inisiatif Google dalam menciptakan Blockly bagi para pemula?",
+                options: [
+                    "Mengubah konsep pemrograman seperti variabel, looping, dan statements menjadi bentuk blok",
+                    "Menghapus seluruh bahasa pemrograman berbasis teks di dunia",
+                    "Membuat aplikasi permainan video offline tanpa kode",
+                    "Mengganti seluruh sistem operasi ponsel pintar"
+                ],
+                answerIndex: 0
+            },
+            {
+                question: "Agar blok-blok pada Blockly dapat menjadi sebuah program yang berjalan, apa yang harus dilakukan pengguna?",
+                options: [
+                    "Menyusun blok tersebut sehingga menjadi suatu script terjemahan bahasa pemrograman",
+                    "Mewarnai setiap blok dengan warna yang berbeda-beda",
+                    "Menghapus blok variabel dan perulangan terlebih dahulu",
+                    "Mencetak gambar blok ke atas kertas"
+                ],
+                answerIndex: 0
+            },
+            {
+                question: "Dari perspektif pengguna (user), bagaimana Blockly didefinisikan?",
+                options: [
+                    "Cara visual dan intuitif untuk membuat kode pemrograman",
+                    "Perangkat keras untuk menyimpan data server",
+                    "Aplikasi pengolah kata untuk membuat dokumen laporan",
+                    "Mesin pencari informasi di internet"
+                ],
+                answerIndex: 0
+            },
+            {
+                question: "Sedangkan dari perspektif pengembang (developer), apa fungsi utama Blockly?",
+                options: [
+                    "UI siap pakai untuk membuat bahasa visual yang meng-generate kode secara sintaksis",
+                    "Sistem keamanan antivirus untuk jaringan lokal",
+                    "Perangkat lunak pengedit video dan audio",
+                    "Database untuk menyimpan nilai ujian sekolah"
+                ],
+                answerIndex: 0
+            },
+            {
+                question: "Blockly termasuk dalam jenis pustaka (library) bahasa pemrograman...",
+                options: [
+                    "Client-side library dari bahasa pemrograman JavaScript",
+                    "Server-side library dari bahasa pemrograman C++",
+                    "Database library dari bahasa SQL",
+                    "Hardware driver dari sistem BIOS"
+                ],
+                answerIndex: 0
+            },
+            {
+                question: "Apa yang mampu dilakukan pemain setelah menyelesaikan seluruh permainan pada Blockly Games?",
+                options: [
+                    "Siap menggunakan bahasa pemrograman berbasis teks konvensional",
+                    "Mampu merakit komponen prosesor komputer sendiri",
+                    "Dapat memperbaiki kerusakan jaringan kabel LAN",
+                    "Menguasai desain grafis vektor tingkat lanjut"
+                ],
+                answerIndex: 0
+            },
+            {
+                question: "Manakah di antara berikut ini yang termasuk pilihan permainan di menu utama Blockly Games?",
+                options: [
+                    "Kolam pembimbing dan kolam",
+                    "Balap mobil dan sepak bola",
+                    "Teka-teki silang dan sudoku",
+                    "Catur dan kartu memori"
+                ],
+                answerIndex: 0
+            },
+            {
+                question: "Apa sifat distribusi perangkat lunak Blockly yang dikembangkan oleh Google?",
+                options: [
+                    "Bersifat open source dengan lisensi Apache License 2.0",
+                    "Bersifat berbayar (proprietary) khusus perusahaan besar",
+                    "Hanya bisa digunakan selama masa uji coba 7 hari",
+                    "Tertutup dan tidak boleh dimodifikasi pengembang lain"
+                ],
+                answerIndex: 0
+            },
+            {
+                question: "Konsep pemrograman berikut ini diubah menjadi bentuk blok visual di dalam Blockly, KECUALI...",
+                options: [
+                    "Perakitan motherboard",
+                    "Variabel",
+                    "Looping (perulangan)",
+                    "Statements (pernyataan)"
+                ],
+                answerIndex: 0
+            }
+        ];
+
+        // 3. STATE APLIKASI
+        const STORAGE_KEY = "blockly_quiz_results_viiia_json_v1";
+        let selectedStudent = null;
+        let activeQuestions = []; // Soal dan pilihan jawaban yang sudah diacak untuk sesi ini
+        let currentQuestionIdx = 0;
+        let correctCount = 0;
+        let score = 0;
+        let answerHistory = [];
+        let questionTimerInterval = null;
+        let timeLeftMs = 30000;
+        const QUESTION_DURATION_MS = 30000; // 30 detik per soal
+        let isAnsweringLocked = false;
+        let isQuizSubmitting = false; // Mencegah penyimpanan ganda jika siswa keluar/refresh
+
+        // Fungsi acak array (Fisher-Yates Shuffle)
+        function shuffleArray(array) {
+            const copy = [...array];
+            for (let i = copy.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [copy[i], copy[j]] = [copy[j], copy[i]];
+            }
+            return copy;
+        }
+
+        // Membuat salinan 10 soal dengan urutan soal & posisi pilihan ABCD yang diacak
+        function generateShuffledQuestions() {
+            const shuffledQuestions = shuffleArray(QUIZ_QUESTIONS);
+            return shuffledQuestions.map(q => {
+                const indexedOptions = q.options.map((text, idx) => ({
+                    text,
+                    isCorrect: idx === q.answerIndex
+                }));
+                const shuffledOpts = shuffleArray(indexedOptions);
+                return {
+                    question: q.question,
+                    options: shuffledOpts.map(o => o.text),
+                    answerIndex: shuffledOpts.findIndex(o => o.isCorrect)
+                };
+            });
+        }
+
+        // Mengecek apakah siswa sudah pernah menyelesaikan kuis
+        function hasStudentCompleted(name) {
+            if (!name) return false;
+            const results = getStoredResults();
+            return results.some(r => r.name.toLowerCase() === name.trim().toLowerCase());
+        }
+
+        // 4. WEB AUDIO API: MUSIK LATAR DEG-DEGAN (HEARTBEAT) & EFEK SUARA
+        let audioCtx = null;
+        let isAudioEnabled = true;
+        let bgmInterval = null;
+        let bgmStep = 0;
+
+        function initAudioContext() {
+            if (!audioCtx) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContextClass();
+            }
+            if (audioCtx.state === "suspended") {
+                audioCtx.resume();
+            }
+        }
+
+        function toggleAudio() {
+            isAudioEnabled = !isAudioEnabled;
+            const icon = document.getElementById("audioIcon");
+            const label = document.getElementById("audioLabel");
+
+            if (isAudioEnabled) {
+                initAudioContext();
+                icon.className = "fa-solid fa-volume-high text-fuchsia-400";
+                label.textContent = "Suara Aktif";
+            } else {
+                icon.className = "fa-solid fa-volume-xmark text-gray-400";
+                label.textContent = "Suara Mati";
+            }
+        }
+
+        // Memainkan detak jantung "Lub-Dub" + bass tegang
+        function playHeartbeatPulse(urgent = false) {
+            if (!isAudioEnabled) return;
+            initAudioContext();
+
+            const now = audioCtx.currentTime;
+
+            // Detak 1 ("Lub" - nada rendah dalam)
+            const osc1 = audioCtx.createOscillator();
+            const gain1 = audioCtx.createGain();
+            osc1.type = "sine";
+            osc1.frequency.setValueAtTime(urgent ? 82 : 68, now);
+            osc1.frequency.exponentialRampToValueAtTime(34, now + 0.14);
+
+            gain1.gain.setValueAtTime(0.001, now);
+            gain1.gain.linearRampToValueAtTime(urgent ? 0.55 : 0.4, now + 0.02);
+            gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+
+            osc1.connect(gain1);
+            gain1.connect(audioCtx.destination);
+            osc1.start(now);
+            osc1.stop(now + 0.17);
+
+            // Detak 2 ("Dub" - 0.18 detik setelah Lub)
+            const osc2 = audioCtx.createOscillator();
+            const gain2 = audioCtx.createGain();
+            osc2.type = "sine";
+            osc2.frequency.setValueAtTime(urgent ? 72 : 58, now + 0.18);
+            osc2.frequency.exponentialRampToValueAtTime(30, now + 0.32);
+
+            gain2.gain.setValueAtTime(0.001, now + 0.18);
+            gain2.gain.linearRampToValueAtTime(urgent ? 0.45 : 0.3, now + 0.20);
+            gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.34);
+
+            osc2.connect(gain2);
+            gain2.connect(audioCtx.destination);
+            osc2.start(now + 0.18);
+            osc2.stop(now + 0.35);
+
+            // Tick-tock halus frekuensi tinggi agar terasa berpacu dengan waktu
+            const tickOsc = audioCtx.createOscillator();
+            const tickGain = audioCtx.createGain();
+            tickOsc.type = "triangle";
+            tickOsc.frequency.setValueAtTime(bgmStep % 2 === 0 ? 880 : 660, now);
+            tickGain.gain.setValueAtTime(0.001, now);
+            tickGain.gain.linearRampToValueAtTime(urgent ? 0.09 : 0.04, now + 0.01);
+            tickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+
+            tickOsc.connect(tickGain);
+            tickGain.connect(audioCtx.destination);
+            tickOsc.start(now);
+            tickOsc.stop(now + 0.06);
+
+            bgmStep++;
+        }
+
+        function startTensionBgm() {
+            stopTensionBgm();
+            playHeartbeatPulse(false);
+            // Ritme awal: 1 detak setiap 750ms
+            bgmInterval = setInterval(() => {
+                const isUrgent = timeLeftMs <= 3500;
+                playHeartbeatPulse(isUrgent);
+            }, 680);
+        }
+
+        function stopTensionBgm() {
+            if (bgmInterval) {
+                clearInterval(bgmInterval);
+                bgmInterval = null;
+            }
+        }
+
+        // Efek suara jawaban benar, salah, atau selesai kuis
+        function playSfx(type) {
+            if (!isAudioEnabled) return;
+            initAudioContext();
+            const now = audioCtx.currentTime;
+
+            if (type === "correct") {
+                const notes = [523.25, 659.25, 783.99]; // C5 - E5 - G5
+                notes.forEach((freq, idx) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = "triangle";
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.07);
+                    gain.gain.setValueAtTime(0.22, now + idx * 0.07);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.07 + 0.25);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now + idx * 0.07);
+                    osc.stop(now + idx * 0.07 + 0.26);
+                });
+            } else if (type === "wrong") {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = "sawtooth";
+                osc.frequency.setValueAtTime(190, now);
+                osc.frequency.linearRampToValueAtTime(115, now + 0.3);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.33);
+            } else if (type === "finish") {
+                const fanfare = [523.25, 659.25, 783.99, 1046.50];
+                fanfare.forEach((freq, idx) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = "sine";
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.11);
+                    gain.gain.setValueAtTime(0.25, now + idx * 0.11);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.11 + 0.45);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now + idx * 0.11);
+                    osc.stop(now + idx * 0.11 + 0.46);
+                });
+            }
+        }
+
+        // 5. LOGIKA PENCARIAN NAMA SISWA & NAVIGASI TAB AWAL
+        const searchInput = document.getElementById("studentSearchInput");
+        const dropdownEl = document.getElementById("studentDropdown");
+        const clearSearchBtn = document.getElementById("clearSearchBtn");
+        const selectedBanner = document.getElementById("selectedStudentBanner");
+        const selectedNameDisplay = document.getElementById("selectedStudentNameDisplay");
+        const validationWarning = document.getElementById("validationWarning");
+
+        function renderStudentDropdown(filterQuery = "") {
+            const query = filterQuery.trim().toLowerCase();
+            const filtered = STUDENT_LIST.map((name, idx) => ({ no: idx + 1, name }))
+                .filter(item => item.name.toLowerCase().includes(query));
+
+            if (filtered.length === 0) {
+                dropdownEl.innerHTML = `
+                    <div class="px-4 py-4 text-center text-sm text-gray-500">
+                        <i class="fa-regular fa-face-frown mr-1"></i> Nama "<strong>${escapeHtml(filterQuery)}</strong>" tidak ditemukan di daftar.
+                    </div>
+                `;
+            } else {
+                dropdownEl.innerHTML = filtered.map(item => {
+                    const alreadyDone = hasStudentCompleted(item.name);
+                    if (alreadyDone) {
+                        return `
+                            <div class="w-full text-left px-4 py-3 bg-gray-50/90 flex items-center justify-between cursor-not-allowed opacity-75">
+                                <div class="flex items-center gap-3">
+                                    <span class="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 font-bold text-xs flex items-center justify-center">
+                                        <i class="fa-solid fa-check"></i>
+                                    </span>
+                                    <span class="font-semibold text-gray-500 text-sm line-through">${escapeHtml(item.name)}</span>
+                                </div>
+                                <span class="text-xs bg-emerald-100 text-emerald-800 font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                                    <i class="fa-solid fa-lock text-[10px]"></i> Sudah Selesai
+                                </span>
+                            </div>
+                        `;
+                    }
+                    return `
+                        <button type="button" onclick="selectStudent('${escapeQuotes(item.name)}')"
+                            class="w-full text-left px-4 py-3 hover:bg-purple-50 focus:bg-purple-100 transition flex items-center justify-between group">
+                            <div class="flex items-center gap-3">
+                                <span class="w-6 h-6 rounded-lg bg-purple-100 text-purple-700 font-bold text-xs flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition">
+                                    ${item.no}
+                                </span>
+                                <span class="font-semibold text-gray-800 text-sm">${escapeHtml(item.name)}</span>
+                            </div>
+                            <span class="text-xs text-purple-500 font-semibold opacity-0 group-hover:opacity-100 transition">Pilih &rarr;</span>
+                        </button>
+                    `;
+                }).join("");
+            }
+            dropdownEl.classList.remove("hidden");
+        }
+
+        searchInput.addEventListener("focus", () => {
+            renderStudentDropdown(searchInput.value);
+        });
+
+        searchInput.addEventListener("input", () => {
+            // Jika pengguna mengetik ulang setelah memilih, reset pilihan sementara
+            if (selectedStudent && searchInput.value !== selectedStudent) {
+                selectedStudent = null;
+                selectedBanner.classList.add("hidden");
+            }
+            clearSearchBtn.classList.toggle("hidden", searchInput.value.length === 0);
+            validationWarning.classList.add("hidden");
+            renderStudentDropdown(searchInput.value);
+        });
+
+        // Tutup dropdown saat klik di luar area input
+        document.addEventListener("click", (e) => {
+            if (!searchInput.contains(e.target) && !dropdownEl.contains(e.target)) {
+                dropdownEl.classList.add("hidden");
+            }
+        });
+
+        function selectStudent(name) {
+            if (hasStudentCompleted(name)) {
+                validationWarning.innerHTML = `<i class="fa-solid fa-lock"></i> <span><strong>${escapeHtml(name)}</strong> sudah menyelesaikan kuis ini dan tidak dapat mengulang lagi.</span>`;
+                validationWarning.classList.remove("hidden");
+                return;
+            }
+            selectedStudent = name;
+            searchInput.value = name;
+            dropdownEl.classList.add("hidden");
+            clearSearchBtn.classList.remove("hidden");
+            validationWarning.classList.add("hidden");
+
+            selectedNameDisplay.textContent = name;
+            selectedBanner.classList.remove("hidden");
+        }
+
+        function clearSelectedStudent() {
+            selectedStudent = null;
+            searchInput.value = "";
+            clearSearchBtn.classList.add("hidden");
+            selectedBanner.classList.add("hidden");
+            validationWarning.classList.add("hidden");
+            searchInput.focus();
+            renderStudentDropdown("");
+        }
+
+        function switchHomeTab(tabName) {
+            const tabStartBtn = document.getElementById("tabStartBtn");
+            const tabResultsBtn = document.getElementById("tabResultsBtn");
+            const startTabContent = document.getElementById("startTabContent");
+            const resultsTabContent = document.getElementById("resultsTabContent");
+
+            if (tabName === "start") {
+                tabStartBtn.className = "py-3 px-4 rounded-xl font-bold text-sm sm:text-base transition-all duration-200 flex items-center justify-center gap-2 bg-white text-purple-900 shadow-md";
+                tabResultsBtn.className = "py-3 px-4 rounded-xl font-bold text-sm sm:text-base transition-all duration-200 flex items-center justify-center gap-2 text-purple-200 hover:text-white";
+                startTabContent.classList.remove("hidden");
+                resultsTabContent.classList.add("hidden");
+            } else {
+                tabResultsBtn.className = "py-3 px-4 rounded-xl font-bold text-sm sm:text-base transition-all duration-200 flex items-center justify-center gap-2 bg-white text-purple-900 shadow-md";
+                tabStartBtn.className = "py-3 px-4 rounded-xl font-bold text-sm sm:text-base transition-all duration-200 flex items-center justify-center gap-2 text-purple-200 hover:text-white";
+                resultsTabContent.classList.remove("hidden");
+                startTabContent.classList.add("hidden");
+                renderResultsTable();
+            }
+        }
+
+        // 6. LOGIKA PENGERJAAN KUIS & TIMER 30 DETIK
+        function startQuiz() {
+            // Cek apakah siswa sudah memilih nama valid dari daftar
+            if (!selectedStudent) {
+                // Cek apakah ketikan persis sama dengan salah satu nama di daftar
+                const exactMatch = STUDENT_LIST.find(
+                    n => n.toLowerCase() === searchInput.value.trim().toLowerCase()
+                );
+                if (exactMatch) {
+                    if (hasStudentCompleted(exactMatch)) {
+                        validationWarning.innerHTML = `<i class="fa-solid fa-lock"></i> <span><strong>${escapeHtml(exactMatch)}</strong> sudah menyelesaikan kuis (maksimal 1 kali pengerjaan).</span>`;
+                        validationWarning.classList.remove("hidden");
+                        return;
+                    }
+                    selectStudent(exactMatch);
+                } else {
+                    validationWarning.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> <span>Silakan klik salah satu nama dari daftar yang muncul terlebih dahulu!</span>`;
+                    validationWarning.classList.remove("hidden");
+                    searchInput.focus();
+                    renderStudentDropdown(searchInput.value);
+                    return;
+                }
+            }
+
+            // Kunci ganda: pastikan siswa belum pernah menyelesaikan kuis
+            if (hasStudentCompleted(selectedStudent)) {
+                validationWarning.innerHTML = `<i class="fa-solid fa-lock"></i> <span><strong>${escapeHtml(selectedStudent)}</strong> sudah menyelesaikan kuis ini dan tidak bisa mengulang.</span>`;
+                validationWarning.classList.remove("hidden");
+                clearSelectedStudent();
+                return;
+            }
+
+            // Acak urutan soal dan posisi pilihan ABCD untuk siswa ini
+            activeQuestions = generateShuffledQuestions();
+
+            // Reset skor, riwayat jawaban & mulai audio tegang
+            currentQuestionIdx = 0;
+            correctCount = 0;
+            score = 0;
+            answerHistory = [];
+            bgmStep = 0;
+            isQuizSubmitting = false;
+
+            initAudioContext();
+            startTensionBgm();
+
+            // Pindah tampilan ke layar kuis
+            document.getElementById("homeView").classList.add("hidden");
+            document.getElementById("finalResultView").classList.add("hidden");
+            document.getElementById("quizView").classList.remove("hidden");
+
+            document.getElementById("activeStudentName").textContent = selectedStudent;
+            document.getElementById("liveScoreText").textContent = "0";
+
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            isAnsweringLocked = false;
+            const qData = activeQuestions[currentQuestionIdx];
+
+            document.getElementById("questionNumberText").textContent = currentQuestionIdx + 1;
+            document.getElementById("questionText").textContent = qData.question;
+
+            const feedbackEl = document.getElementById("instantFeedback");
+            feedbackEl.classList.add("hidden");
+
+            const optionsContainer = document.getElementById("optionsContainer");
+            const optionLetters = ["A", "B", "C", "D"];
+
+            optionsContainer.innerHTML = qData.options.map((optText, idx) => `
+                <button type="button" id="optBtn_${idx}" onclick="submitAnswer(${idx})"
+                    class="w-full text-left p-4 rounded-2xl border-2 border-purple-100 bg-purple-50/40 hover:bg-purple-100/70 hover:border-purple-400 transition-all duration-150 flex items-center gap-3.5 group active:scale-[0.99]">
+                    <span id="optBadge_${idx}" class="w-9 h-9 rounded-xl bg-purple-700 text-white font-extrabold text-sm flex items-center justify-center shrink-0 group-hover:bg-fuchsia-600 transition">
+                        ${optionLetters[idx]}
+                    </span>
+                    <span class="font-semibold text-gray-800 text-sm sm:text-base leading-snug">${escapeHtml(optText)}</span>
+                </button>
+            `).join("");
+
+            startQuestionTimer();
+        }
+
+        function startQuestionTimer() {
+            clearInterval(questionTimerInterval);
+            timeLeftMs = QUESTION_DURATION_MS;
+            updateTimerUI();
+
+            const tickStepMs = 50; // Update smooth setiap 50ms
+            questionTimerInterval = setInterval(() => {
+                timeLeftMs -= tickStepMs;
+                if (timeLeftMs <= 0) {
+                    timeLeftMs = 0;
+                    updateTimerUI();
+                    clearInterval(questionTimerInterval);
+                    handleTimeOut();
+                } else {
+                    updateTimerUI();
+                }
+            }, tickStepMs);
+        }
+
+        function updateTimerUI() {
+            const secondsRemaining = Math.ceil(timeLeftMs / 1000);
+            const percentage = Math.max(0, (timeLeftMs / QUESTION_DURATION_MS) * 100);
+
+            const timerText = document.getElementById("timerSecondsText");
+            const progressBar = document.getElementById("timerProgressBar");
+            const heartIcon = document.getElementById("timerHeartIcon");
+
+            timerText.textContent = `${secondsRemaining} Detik`;
+            progressBar.style.width = `${percentage}%`;
+
+            // Efek visual mendebarkan saat sisa waktu <= 3 detik
+            if (secondsRemaining <= 3) {
+                timerText.className = "text-lg sm:text-xl font-extrabold text-rose-300 tabular-nums animate-pulse";
+                progressBar.className = "h-full bg-gradient-to-r from-rose-500 to-red-600 rounded-full transition-all duration-75 ease-linear";
+                heartIcon.classList.add("animate-heartbeat", "text-rose-400");
+            } else {
+                timerText.className = "text-lg sm:text-xl font-extrabold text-white tabular-nums";
+                progressBar.className = "h-full bg-gradient-to-r from-fuchsia-400 via-pink-500 to-amber-400 rounded-full transition-all duration-75 ease-linear";
+                heartIcon.classList.remove("animate-heartbeat", "text-rose-400");
+            }
+        }
+
+        function submitAnswer(chosenIndex) {
+            if (isAnsweringLocked) return;
+            isAnsweringLocked = true;
+            clearInterval(questionTimerInterval);
+
+            const qData = activeQuestions[currentQuestionIdx];
+            const isCorrect = chosenIndex === qData.answerIndex;
+            const feedbackEl = document.getElementById("instantFeedback");
+
+            // Nonaktifkan semua tombol & beri warna indikator
+            for (let i = 0; i < 4; i++) {
+                const btn = document.getElementById(`optBtn_${i}`);
+                const badge = document.getElementById(`optBadge_${i}`);
+                btn.disabled = true;
+
+                if (i === qData.answerIndex) {
+                    btn.className = "w-full text-left p-4 rounded-2xl border-2 border-emerald-500 bg-emerald-50 flex items-center gap-3.5";
+                    badge.className = "w-9 h-9 rounded-xl bg-emerald-600 text-white font-extrabold text-sm flex items-center justify-center shrink-0";
+                } else if (i === chosenIndex && !isCorrect) {
+                    btn.className = "w-full text-left p-4 rounded-2xl border-2 border-rose-500 bg-rose-50 flex items-center gap-3.5";
+                    badge.className = "w-9 h-9 rounded-xl bg-rose-600 text-white font-extrabold text-sm flex items-center justify-center shrink-0";
+                } else {
+                    btn.className = "w-full text-left p-4 rounded-2xl border-2 border-gray-100 bg-gray-50 opacity-50 flex items-center gap-3.5";
+                }
+            }
+
+            if (isCorrect) {
+                correctCount++;
+                score += 10;
+                document.getElementById("liveScoreText").textContent = score;
+                playSfx("correct");
+                feedbackEl.className = "mt-5 p-3.5 rounded-2xl text-center font-bold text-sm sm:text-base bg-emerald-100 text-emerald-800 border border-emerald-200";
+                feedbackEl.innerHTML = `<i class="fa-solid fa-circle-check mr-1.5"></i> Benar! +10 Poin`;
+            } else {
+                playSfx("wrong");
+                feedbackEl.className = "mt-5 p-3.5 rounded-2xl text-center font-bold text-sm sm:text-base bg-rose-100 text-rose-800 border border-rose-200";
+                feedbackEl.innerHTML = `<i class="fa-solid fa-circle-xmark mr-1.5"></i> Kurang Tepat!`;
+            }
+
+            // Catat detail jawaban untuk penyimpanan JSON
+            answerHistory.push({
+                questionNumber: currentQuestionIdx + 1,
+                question: qData.question,
+                chosenOption: qData.options[chosenIndex],
+                correctOption: qData.options[qData.answerIndex],
+                isCorrect: isCorrect
+            });
+
+            feedbackEl.classList.remove("hidden");
+
+            // Jeda 0.8 detik lalu lanjut ke soal berikutnya
+            setTimeout(() => {
+                goToNextQuestion();
+            }, 800);
+        }
+
+        function handleTimeOut() {
+            if (isAnsweringLocked) return;
+            isAnsweringLocked = true;
+
+            const qData = activeQuestions[currentQuestionIdx];
+            const feedbackEl = document.getElementById("instantFeedback");
+
+            // Catat waktu habis dalam riwayat jawaban JSON
+            answerHistory.push({
+                questionNumber: currentQuestionIdx + 1,
+                question: qData.question,
+                chosenOption: "Waktu Habis (Tidak Menjawab)",
+                correctOption: qData.options[qData.answerIndex],
+                isCorrect: false
+            });
+
+            for (let i = 0; i < 4; i++) {
+                const btn = document.getElementById(`optBtn_${i}`);
+                const badge = document.getElementById(`optBadge_${i}`);
+                btn.disabled = true;
+
+                if (i === qData.answerIndex) {
+                    btn.className = "w-full text-left p-4 rounded-2xl border-2 border-emerald-500 bg-emerald-50 flex items-center gap-3.5";
+                    badge.className = "w-9 h-9 rounded-xl bg-emerald-600 text-white font-extrabold text-sm flex items-center justify-center shrink-0";
+                } else {
+                    btn.className = "w-full text-left p-4 rounded-2xl border-2 border-gray-100 bg-gray-50 opacity-50 flex items-center gap-3.5";
+                }
+            }
+
+            playSfx("wrong");
+            feedbackEl.className = "mt-5 p-3.5 rounded-2xl text-center font-bold text-sm sm:text-base bg-amber-100 text-amber-900 border border-amber-200";
+            feedbackEl.innerHTML = `<i class="fa-solid fa-hourglass-end mr-1.5"></i> Waktu Habis! Lanjut soal berikutnya...`;
+            feedbackEl.classList.remove("hidden");
+
+            setTimeout(() => {
+                goToNextQuestion();
+            }, 950);
+        }
+
+        function goToNextQuestion() {
+            currentQuestionIdx++;
+            if (currentQuestionIdx < activeQuestions.length) {
+                loadQuestion();
+            } else {
+                finishQuiz();
+            }
+        }
+
+        function finishQuiz() {
+            if (isQuizSubmitting) return;
+            isQuizSubmitting = true;
+
+            clearInterval(questionTimerInterval);
+            stopTensionBgm();
+            playSfx("finish");
+
+            // Simpan hasil beserta detail jawaban ke format JSON di localStorage
+            saveResultToStorage({
+                id: Date.now(),
+                name: selectedStudent,
+                score: score,
+                correct: correctCount,
+                totalQuestions: activeQuestions.length,
+                timestamp: formatCurrentTime(),
+                details: answerHistory
+            });
+
+            // Tampilkan layar hasil akhir
+            document.getElementById("quizView").classList.add("hidden");
+            document.getElementById("finalResultView").classList.remove("hidden");
+
+            document.getElementById("finalStudentName").textContent = selectedStudent;
+            document.getElementById("finalCorrectCount").textContent = correctCount;
+            document.getElementById("finalScoreValue").textContent = score;
+
+            const motivationEl = document.getElementById("finalMotivationText");
+            if (score === 100) {
+                motivationEl.textContent = "Sempurna! Kamu menguasai materi Blockly dengan luar biasa!";
+            } else if (score >= 80) {
+                motivationEl.textContent = "Hebat sekali! Pemahamanmu tentang Blockly sangat baik!";
+            } else if (score >= 60) {
+                motivationEl.textContent = "Bagus! Terus berlatih agar nilaimu semakin maksimal!";
+            } else {
+                motivationEl.textContent = "Tetap semangat! Coba baca kembali materi Blockly dan ulangi kuisnya!";
+            }
+        }
+
+        function goToHome(targetTab = "start") {
+            stopTensionBgm();
+            clearInterval(questionTimerInterval);
+
+            document.getElementById("quizView").classList.add("hidden");
+            document.getElementById("finalResultView").classList.add("hidden");
+            document.getElementById("homeView").classList.remove("hidden");
+
+            clearSelectedStudent();
+            dropdownEl.classList.add("hidden");
+            updateResultsBadge();
+            switchHomeTab(targetTab);
+        }
+
+        // 7. PENYIMPANAN & TAMPILAN HASIL NILAI SISWA (JSON + LOCALSTORAGE)
+        function getStoredResults() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                return raw ? JSON.parse(raw) : [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function saveResultToStorage(newEntry) {
+            const results = getStoredResults();
+            // Hanya simpan jika nama belum ada (1 orang hanya 1 kali kesempatan)
+            const alreadyExists = results.some(r => r.name.toLowerCase() === newEntry.name.toLowerCase());
+            if (!alreadyExists) {
+                results.unshift(newEntry);
+                // Urutkan berdasarkan nilai tertinggi
+                results.sort((a, b) => b.score - a.score);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(results));
+            }
+            updateResultsBadge();
+        }
+
+        function updateResultsBadge() {
+            const count = getStoredResults().length;
+            document.getElementById("resultsCountBadge").textContent = count;
+        }
+
+        function renderResultsTable() {
+            const tbody = document.getElementById("resultsTableBody");
+            const filterText = (document.getElementById("resultSearchInput").value || "").trim().toLowerCase();
+            const allResults = getStoredResults();
+            const filtered = allResults.filter(r => r.name.toLowerCase().includes(filterText));
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="py-10 px-4 text-center text-gray-500">
+                            <div class="w-12 h-12 rounded-2xl bg-purple-100 text-purple-500 flex items-center justify-center mx-auto mb-2.5 text-xl">
+                                <i class="fa-solid fa-clipboard-list"></i>
+                            </div>
+                            <p class="font-semibold text-gray-700">Belum ada data nilai yang tersimpan</p>
+                            <p class="text-xs text-gray-400 mt-1">Nilai akan otomatis muncul di sini setelah siswa menyelesaikan kuis.</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map((item, idx) => {
+                let badgeClass = "bg-purple-100 text-purple-800";
+                if (item.score >= 80) badgeClass = "bg-emerald-100 text-emerald-800 border border-emerald-200";
+                else if (item.score >= 60) badgeClass = "bg-amber-100 text-amber-800 border border-amber-200";
+                else badgeClass = "bg-rose-100 text-rose-800 border border-rose-200";
+
+                const medalIcon = idx === 0 && filterText === ""
+                    ? `<i class="fa-solid fa-crown text-amber-500 mr-1"></i>`
+                    : "";
+
+                return `
+                    <tr class="hover:bg-purple-50/70 transition">
+                        <td class="py-3.5 px-4 text-center font-bold text-gray-500">${idx + 1}</td>
+                        <td class="py-3.5 px-4 font-bold text-gray-900">${medalIcon}${escapeHtml(item.name)}</td>
+                        <td class="py-3.5 px-4 text-center">
+                            <span class="inline-block px-3 py-1 rounded-xl font-extrabold text-sm ${badgeClass}">
+                                ${item.score}
+                            </span>
+                        </td>
+                        <td class="py-3.5 px-4 text-right text-xs text-gray-400 hidden sm:table-cell">${escapeHtml(item.timestamp || "-")}</td>
+                    </tr>
+                `;
+            }).join("");
+        }
+
+        function showNotificationToast(message) {
+            const toast = document.getElementById("copyToast");
+            const toastText = document.getElementById("copyToastText");
+            toastText.textContent = message;
+            toast.classList.remove("hidden");
+            setTimeout(() => toast.classList.add("hidden"), 3000);
+        }
+
+        function copyResultsToClipboard() {
+            const results = getStoredResults();
+            if (results.length === 0) {
+                showNotificationToast("Belum ada data nilai untuk disalin.");
+                return;
+            }
+
+            let text = "REKAP NILAI KUIS BLOCKLY - INFORMATIKA KELAS VIII A\n";
+            text += "===================================================\n";
+            results.forEach((r, idx) => {
+                text += `${idx + 1}. ${r.name} | Nilai: ${r.score} (Benar: ${r.correct}/10) | ${r.timestamp}\n`;
+            });
+
+            const tempTextarea = document.createElement("textarea");
+            tempTextarea.value = text;
+            document.body.appendChild(tempTextarea);
+            tempTextarea.select();
+            document.execCommand("copy");
+            document.body.removeChild(tempTextarea);
+
+            showNotificationToast("Rekap nilai berhasil disalin ke clipboard!");
+        }
+
+        // DOWNLOAD DATA HASIL KUIS DALAM FORMAT FILE .JSON
+        function downloadResultsJSON() {
+            const results = getStoredResults();
+            if (results.length === 0) {
+                showNotificationToast("Belum ada data nilai untuk diunduh.");
+                return;
+            }
+
+            const payload = {
+                appName: "Kuis Interaktif Blockly - Informatika Kelas VIII A",
+                exportedAt: formatCurrentTime(),
+                totalRecords: results.length,
+                results: results
+            };
+
+            const jsonString = JSON.stringify(payload, null, 2);
+            const blob = new Blob([jsonString], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+
+            const link = document.createElement("a");
+            const dateSlug = new Date().toISOString().slice(0, 10);
+            link.href = url;
+            link.download = `hasil-kuis-blockly-VIIIA-${dateSlug}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            showNotificationToast("File backup JSON berhasil diunduh!");
+        }
+
+        // UPLOAD / RESTORE DATA HASIL KUIS DARI FILE .JSON
+        function triggerImportJSON() {
+            const input = document.getElementById("importJsonInput");
+            input.value = "";
+            input.click();
+        }
+
+        function handleImportJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    const importedArray = Array.isArray(parsed) ? parsed : parsed.results;
+
+                    if (!Array.isArray(importedArray)) {
+                        showNotificationToast("Format file JSON tidak valid!");
+                        return;
+                    }
+
+                    // Validasi struktur dasar tiap entri
+                    const validEntries = importedArray.filter(
+                        item => item && typeof item.name === "string" && typeof item.score === "number"
+                    );
+
+                    if (validEntries.length === 0) {
+                        showNotificationToast("Tidak ditemukan data nilai yang valid di dalam file JSON.");
+                        return;
+                    }
+
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(validEntries));
+                    updateResultsBadge();
+                    renderResultsTable();
+                    showNotificationToast(`Berhasil memulihkan ${validEntries.length} data nilai dari JSON!`);
+                } catch (err) {
+                    showNotificationToast("Gagal membaca file JSON. Pastikan file tidak rusak.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function openResetModal() {
+            document.getElementById("resetModal").classList.remove("hidden");
+        }
+
+        function closeResetModal() {
+            document.getElementById("resetModal").classList.add("hidden");
+        }
+
+        function confirmResetResults() {
+            localStorage.removeItem(STORAGE_KEY);
+            updateResultsBadge();
+            renderResultsTable();
+            closeResetModal();
+            showNotificationToast("Semua data nilai berhasil dihapus.");
+        }
+
+        // 8. HELPER FUNCTIONS
+        function formatCurrentTime() {
+            const now = new Date();
+            return now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }) +
+                   " • " +
+                   now.toLocaleDateString("id-ID", { day: "2-digit", month: "short" });
+        }
+
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;");
+        }
+
+        function escapeQuotes(str) {
+            return String(str).replace(/'/g, "\\'");
+        }
+
+        // Inisialisasi saat halaman dimuat
+        window.addEventListener("DOMContentLoaded", () => {
+            updateResultsBadge();
+            renderResultsTable();
+        });
+    </script>
+</body>
+</html>
